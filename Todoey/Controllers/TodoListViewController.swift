@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: SwipeTableViewController {
     
     var todoItems: Results<Item>?
     
@@ -24,7 +24,7 @@ class TodoListViewController: UITableViewController {
   
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+    
         print(FileManager.default.urls(for:.documentDirectory, in: .userDomainMask))
     }
     
@@ -34,7 +34,8 @@ class TodoListViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoitemcell", for: indexPath)
+       
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let item = todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
@@ -44,6 +45,22 @@ class TodoListViewController: UITableViewController {
         }
         return cell
     }
+    
+
+    //MARK: - Delete Data From Swipe
+    override func updateModel(at indexPath: IndexPath) {
+        
+        if let itemForDeletion = self.todoItems?[indexPath.row] {
+            do{
+                try self.realm.write{
+                    self.realm.delete(itemForDeletion)
+                }
+            } catch {
+                print("Error delete item \(error)")
+            }
+        }
+    }
+    
     
     //Mark - Tableview Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -90,6 +107,8 @@ class TodoListViewController: UITableViewController {
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
     }
+    
+ 
     
     //MARK - Model Manupulation Methods
     func save(item: Item){
